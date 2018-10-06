@@ -14,19 +14,25 @@ class CCDatePicker: UIView {
     
     fileprivate let formatter = Date.dateFormatterWith("yyyy-MM-dd")
     
-    /// 行高
-    var rowHeight: CGFloat = 44 {
-        didSet{
-            pickerview.reloadAllComponents()
-        }
-    }
-    
     /// 标题字体,默认17号
     var titleFont  = UIFont.systemFont(ofSize: 17)
     
     /// 标题颜色,默认darkGray
     var titleColor = UIColor.darkGray
     
+    /// 行高
+    var rowHeight: CGFloat = 44
+    
+    /// 分割线颜色,默认lightGray
+    var separatorColor = UIColor.lightGray {
+        didSet{
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { // 立即刷新
+                self.separatorLines.forEach {
+                    $0.backgroundColor = self.separatorColor
+                }
+            }
+        }
+    }
     
     
     
@@ -69,6 +75,7 @@ extension CCDatePicker{
         setDate(string, animated: animated)
     }
     
+    /// 设置日期,例如`"2007-08-20"`或`"2007-11-09"`
     func setDate(_ dateString: String, animated: Bool = false) {
         let components = dateString.components(separatedBy: "-")
         if components.count != 3 { return }
@@ -106,6 +113,14 @@ extension CCDatePicker{
         let components = string.components(separatedBy: "-").first!
         let resultInt = Int(components) ?? 1970
         return resultInt
+    }
+    
+    /// 分割线views
+    fileprivate var separatorLines: [UIView] {
+        let lines = pickerview.subviews.filter {
+            $0.bounds.height < 1.0 && $0.bounds.width == pickerview.bounds.width
+        }
+        return lines
     }
     
     /// 特定年月的天数
