@@ -8,7 +8,7 @@
 -------------
 
 ### 效果:
-![image](https:)
+![image](https://github.com/xiaosao6/CCDatePicker/blob/master/SnapShot.png?raw=true)
 
 
 
