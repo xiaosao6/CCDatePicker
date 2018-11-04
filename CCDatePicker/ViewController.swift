@@ -15,10 +15,18 @@ class ViewController: UIViewController {
         
         let frame = CGRect(x: 0, y: 80, width: UIScreen.main.bounds.width, height: 200)
         let datepicker = CCDatePicker.init(frame: frame)
+        datepicker.delegate = self
         self.view.addSubview(datepicker)
         
-        datepicker.setDate(Date())
+        datepicker.setDate(Date().addingTimeInterval(-10 * (24*60*60))) // 10天前
     }
 
+}
+
+extension ViewController: CCDatePickerDelegate {
+    func didSelectDate(at picker: CCDatePicker) {
+        let description = picker.currentDate.description(with: Locale.current)
+        NSLog(description)
+    }
 }
 
