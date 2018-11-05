@@ -139,6 +139,11 @@ extension CCDatePicker{
         let offset = (currentYear == minYear && currentMonth == minMonth) ? minDate.intValueOf(.day) : 1
         return offset
     }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        pickerview.frame = self.bounds
+    }
 }
 
 extension CCDatePicker: UIPickerViewDelegate{
