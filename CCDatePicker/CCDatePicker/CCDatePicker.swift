@@ -18,7 +18,10 @@ class CCDatePicker: UIView {
     
     weak var delegate: CCDatePickerDelegate?
     
-    /// 标题字体,默认17号
+    /// 单位字符
+    var unitName: (year: String?, month: String?, day: String?) = ("年", "月", "日")
+    
+    /// 标题字体,默认17
     var titleFont  = UIFont.systemFont(ofSize: 17)
     
     /// 标题颜色,默认darkGray
@@ -39,7 +42,7 @@ class CCDatePicker: UIView {
     }
     
     /// 最小的日期
-    var minDate = Date.defaultFormatter.date(from: "2000-10-20")!
+    var minDate = Date.defaultFormatter.date(from: "2000-01-01")!
     /// 最大的日期,默认今天
     var maxDate = Date()
     
@@ -160,16 +163,13 @@ extension CCDatePicker: UIPickerViewDelegate{
     func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
         var ostr = ""
         switch component {
-        case 0: ostr = String(minDate.intValueOf(.year) + row) + "年"
-        case 1:
-            ostr = String(row + getMonthOffset()) + "月"
-        case 2:
-            ostr = String(row + getDayOffset()) + "日"
+        case 0: ostr = String(minDate.intValueOf(.year) + row) + (unitName.year ?? "")
+        case 1: ostr = String(row + getMonthOffset()) + (unitName.month ?? "")
+        case 2: ostr = String(row + getDayOffset()) + (unitName.day ?? "")
         default: break
         }
         let attStr = NSMutableAttributedString(string: ostr)
-        let range  = NSRange(location: 0, length: ostr.count)
-        attStr.addAttributes([.foregroundColor: titleColor, .font: titleFont], range: range)
+        attStr.addAttributes([.foregroundColor: titleColor, .font: titleFont], range: NSMakeRange(0, ostr.count))
         return attStr
     }
     
