@@ -30,13 +30,116 @@ extension CCDateManager {
     }
 }
 
+extension CCDateManager {
+    fileprivate func numberOfRowsInComponent(_ component: Int) -> Int {
+        switch component {
+        case 0: // 年
+            return (maxDate.year - minDate.year) + 1
+        case 1: // 月
+            if (maxDate.year == minDate.year) {
+                return (maxDate.month - minDate.month) + 1
+            } else {
+                if currentDate.year == minDate.year {
+                    return 12 - minDate.month + 1
+                } else if currentDate.year == maxDate.year {
+                    return maxDate.month
+                } else {
+                    return 12
+                }
+            }
+        case 2: // 日
+            let fullDays = Date.fullDaysOf(year: currentDate.year, month: currentDate.month)
+            
+            if (maxDate.year == minDate.year) {
+                if (maxDate.month == minDate.month){
+                    return maxDate.day - minDate.day + 1
+                } else {
+                    if (currentDate.month == minDate.month) {
+                        return fullDays - minDate.day + 1
+                    } else if (currentDate.month == maxDate.month) {
+                        return maxDate.day
+                    } else {
+                        return fullDays
+                    }
+                }
+            } else {
+                if currentDate.year == minDate.year {
+                    if currentDate.month == minDate.month {
+                        return fullDays - minDate.day + 1
+                    } else {
+                        return fullDays
+                    }
+                } else if currentDate.year == maxDate.year {
+                    if currentDate.month == maxDate.month {
+                        return maxDate.day
+                    } else {
+                        return fullDays
+                    }
+                } else {
+                    return fullDays
+                }
+            }
+        default: return 0
+        }
+    }
+    
+    fileprivate func intValueForRow(row: Int, forComponent component: Int) -> Int{
+        switch component {
+        case 0: return minDate.year + row
+        case 1:
+            if (maxDate.year == minDate.year) {
+                return minDate.month + row
+            } else {
+                if currentDate.year == minDate.year {
+                    return minDate.month + row
+                } else if currentDate.year == maxDate.year {
+                    return row + 1
+                } else {
+                    return row + 1
+                }
+            }
+        case 2:
+            if (maxDate.year == minDate.year) {
+                if (maxDate.month == minDate.month){
+                    return minDate.day + row
+                } else {
+                    if (currentDate.month == minDate.month) {
+                        return minDate.day + row
+                    } else if (currentDate.month == maxDate.month) {
+                        return row + 1
+                    } else {
+                        return row + 1
+                    }
+                }
+            } else {
+                if currentDate.year == minDate.year {
+                    if currentDate.month == minDate.month {
+                        return minDate.day + row
+                    } else {
+                        return row + 1
+                    }
+                } else if currentDate.year == maxDate.year {
+                    if currentDate.month == maxDate.month {
+                        return row + 1
+                    } else {
+                        return row + 1
+                    }
+                } else {
+                    return row + 1
+                }
+            }
+        default: return 1
+        }
+    }
+}
+
 extension CCDateManager: CCDatePickerDataSource {
     func datepicker(_ picker: CCDatePicker, numberOfRowsInComponent component: Int) -> Int {
-        return 0
+        return self.numberOfRowsInComponent(component)
     }
     
     func datepicker(_ picker: CCDatePicker, intValueForRow row: Int, forComponent component: Int) -> Int {
-        return 0
+        return self.intValueForRow(row: row, forComponent: component)
     }
 }
 

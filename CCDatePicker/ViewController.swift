@@ -16,7 +16,7 @@ class ViewController: UIViewController {
         let frame = CGRect(x: 0, y: 80, width: UIScreen.main.bounds.width, height: 200)
         let minDate = Date().addingTimeInterval((365 * 24 * 60 * 60) * -10)
         let maxDate = Date().addingTimeInterval((  1 * 24 * 60 * 60))
-        let datepicker = CCDatePicker(minDate: minDate, maxDate: maxDate)
+        let datepicker = CCDatePicker.init(minDate: minDate, maxDate: maxDate)
         datepicker.frame = frame
         datepicker.delegate = self
         self.view.addSubview(datepicker)

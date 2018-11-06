@@ -86,6 +86,7 @@ extension CCDatePicker{
     
     func setDate(_ date: Date, animated: Bool = false) {
         manager.setDate(date)
+        pickerview.reloadAllComponents()
     }
 }
 
