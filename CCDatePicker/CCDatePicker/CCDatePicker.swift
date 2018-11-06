@@ -13,47 +13,45 @@ protocol CCDatePickerDelegate: class {
     func didSelectDate(at picker: CCDatePicker)
 }
 
+protocol CCDatePickerDataSource: class {
+    func datepicker(_ picker: CCDatePicker, numberOfRowsInComponent component: Int) -> Int
+    func datepicker(_ picker: CCDatePicker, intValueForRow row: Int, forComponent component: Int) -> Int
+}
+
 
 class CCDatePicker: UIView {
     
     weak var delegate: CCDatePickerDelegate?
+    weak var dataSource: CCDatePickerDataSource?
     
     /// 单位字符
     var unitName: (year: String?, month: String?, day: String?) = ("年", "月", "日")
     
-    /// 标题字体,默认17
+    /// 标题字体
     var titleFont  = UIFont.systemFont(ofSize: 17)
     
-    /// 标题颜色,默认darkGray
+    /// 标题颜色
     var titleColor = UIColor.darkGray
     
     /// 行高
     var rowHeight: CGFloat = 44
     
-    /// 分割线颜色,默认lightGray
+    /// 分割线颜色
     var separatorColor = UIColor.lightGray {
         didSet{
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { // 立即刷新
-                self.separatorLines.forEach {
-                    $0.backgroundColor = self.separatorColor
-                }
+                self.separatorLines.forEach { $0.backgroundColor = self.separatorColor }
             }
         }
     }
     
-    /// 最小的日期
-    var minDate = Date.defaultFormatter.date(from: "2000-01-01")!
-    /// 最大的日期,默认今天
-    var maxDate = Date()
-    
     /// 当前选中的日期
     var currentDate: Date {
-        let offset = getDayOffset()
-        let currentDay = pickerview.selectedRow(inComponent: 2) + offset
-        let dateStr = "\(currentYear)-\(currentMonth)-\(currentDay)"
-        return Date.defaultFormatter.date(from: dateStr)!
+        return self.manager.currentDate
     }
     
+    
+    fileprivate let manager = CCDateManager.init()
     
     fileprivate lazy var pickerview: UIPickerView = {
         let tmpv = UIPickerView.init()
@@ -62,8 +60,12 @@ class CCDatePicker: UIView {
         return tmpv
     }()
     
-    override init(frame: CGRect) {
+    required init(frame: CGRect = .zero, minDate: Date, maxDate: Date) {
         super.init(frame: frame)
+        
+        manager.minDate = minDate
+        manager.maxDate = maxDate
+        self.dataSource = manager
         
         pickerview.frame = frame
         self.addSubview(pickerview)
@@ -76,71 +78,25 @@ class CCDatePicker: UIView {
 //MARK: ------------------------ Public
 
 extension CCDatePicker{
-    
-    func setDate(_ date: Date, animated: Bool = false) {
-        let string = Date.defaultFormatter.string(from: date)
-        setDate(string, animated: animated)
-    }
-    
     /// 设置日期,例如`"2007-08-20"`或`"2007-11-09"`
     func setDate(_ dateString: String, animated: Bool = false) {
-        let components = dateString.components(separatedBy: "-")
-        if components.count != 3 { return }
-        
-        let minYear = minDate.intValueOf(.year)
-        let year  = Int(components.first ?? "") ?? minYear
-        let month = Int(components[1]) ?? 1
-        let day   = Int(components.last ?? "") ?? 1
-        
-        let yearRow  = (year - minYear) > 0 ? (year - minYear) : 0
-        let monthRow = (month - 1) > 0 ? (month - 1) : 0
-        let dayRow   = (day - 1) > 0 ? (day - 1) : 0
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
-            self.pickerview.selectRow(yearRow, inComponent: 0, animated: animated)
-            self.pickerview.reloadAllComponents()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            self.pickerview.selectRow(monthRow, inComponent: 1, animated: animated)
-            self.pickerview.selectRow(dayRow,   inComponent: 2, animated: animated)
-            self.pickerview.reloadAllComponents()
-        }
+        guard let date = Date.cc_defaultFormatter.date(from: dateString) else { return }
+        setDate(date, animated: animated)
+    }
+    
+    func setDate(_ date: Date, animated: Bool = false) {
+        manager.setDate(date)
     }
 }
 
 //MARK: ------------------------ Private
 
 extension CCDatePicker{
-    /// 当前年数值
-    fileprivate var currentYear: Int {
-        let minYear = minDate.intValueOf(.year)
-        return pickerview.selectedRow(inComponent: 0) + minYear
-    }
-    /// 当前月数值
-    fileprivate var currentMonth: Int {
-        let offset = getMonthOffset()
-        return pickerview.selectedRow(inComponent: 1) + offset
-    }
-    
     /// 分割线views
     fileprivate var separatorLines: [UIView] {
         return pickerview.subviews.filter {
             $0.bounds.height < 1.0 && $0.bounds.width == pickerview.bounds.width
         }
-    }
-    
-    fileprivate func getMonthOffset() -> Int {
-        let minYear  = minDate.intValueOf(.year)
-        let minMonth = minDate.intValueOf(.month)
-        let offset = (currentYear == minYear) ? minMonth : 1
-        return offset
-    }
-    
-    fileprivate func getDayOffset() -> Int {
-        let minYear  = minDate.intValueOf(.year)
-        let minMonth = minDate.intValueOf(.month)
-        let offset = (currentYear == minYear && currentMonth == minMonth) ? minDate.intValueOf(.day) : 1
-        return offset
     }
     
     override func layoutSubviews() {
@@ -162,10 +118,11 @@ extension CCDatePicker: UIPickerViewDelegate{
     }
     func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
         var ostr = ""
+        let intValue = self.dataSource?.datepicker(self, intValueForRow: row, forComponent: component) ?? 1
         switch component {
-        case 0: ostr = String(minDate.intValueOf(.year) + row) + (unitName.year ?? "")
-        case 1: ostr = String(row + getMonthOffset()) + (unitName.month ?? "")
-        case 2: ostr = String(row + getDayOffset()) + (unitName.day ?? "")
+        case 0: ostr = String(intValue) + (unitName.year ?? "")
+        case 1: ostr = String(intValue) + (unitName.month ?? "")
+        case 2: ostr = String(intValue) + (unitName.day ?? "")
         default: break
         }
         let attStr = NSMutableAttributedString(string: ostr)
@@ -206,59 +163,8 @@ extension CCDatePicker: UIPickerViewDataSource{
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        let maxYearInt  = maxDate.intValueOf(.year)
-        let maxMonthInt = maxDate.intValueOf(.month)
-        
-        let minYearInt  = minDate.intValueOf(.year)
-        let minMonthInt = minDate.intValueOf(.month)
-        
-        switch component {
-        case 0: return (maxYearInt - minYearInt) + 1
-        case 1:
-            if (currentYear == maxYearInt) {
-                return maxMonthInt
-            } else if (currentYear == minYearInt) {
-                return 12 - minMonthInt + 1
-            }
-            return 12
-        case 2:
-            let fullDays = Date.fullDaysOfMonth(currentMonth, year: currentYear)
-            if (currentYear == maxYearInt && currentMonth == maxMonthInt){
-                return maxDate.intValueOf(.day)
-            } else if (currentYear == minYearInt && currentMonth == minMonthInt) {
-                return fullDays - minDate.intValueOf(.day) + 1
-            }
-            return fullDays
-        default: return 0
-        }
+        let rowCount = self.dataSource?.datepicker(self, numberOfRowsInComponent: component) ?? 0
+        return rowCount
     }
 }
 
-fileprivate extension Date {
-    static var defaultFormatter: DateFormatter {
-        return self.dateFormatterWith("yyyy-MM-dd")
-    }
-    /// 自定义时间格式的格式化器
-    static func dateFormatterWith(_ formatString: String) -> DateFormatter {
-        let threadDic = Thread.current.threadDictionary
-        if let fmt = threadDic.object(forKey: formatString) as? DateFormatter {
-            return fmt
-        }
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = formatString
-        threadDic.setObject(dateFormatter, forKey: formatString as NSCopying)
-        return dateFormatter
-    }
-    
-    /// 特定年月的天数
-    static func fullDaysOfMonth(_ month: Int, year: Int) -> Int {
-        if [1, 3, 5, 7, 8, 10, 12].contains(month) { return 31 }
-        if [4, 6, 9, 11].contains(month) { return 30 }
-        let isLeapYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
-        return isLeapYear ? 29 : 28 // 二月
-    }
-    
-    func intValueOf(_ component: Calendar.Component) -> Int {
-        return NSCalendar.current.component(component, from: self)
-    }
-}

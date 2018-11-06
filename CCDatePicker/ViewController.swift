@@ -14,11 +14,14 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         let frame = CGRect(x: 0, y: 80, width: UIScreen.main.bounds.width, height: 200)
-        let datepicker = CCDatePicker.init(frame: frame)
+        let minDate = Date().addingTimeInterval((365 * 24 * 60 * 60) * -10)
+        let maxDate = Date().addingTimeInterval((  1 * 24 * 60 * 60))
+        let datepicker = CCDatePicker(minDate: minDate, maxDate: maxDate)
+        datepicker.frame = frame
         datepicker.delegate = self
         self.view.addSubview(datepicker)
         
-        datepicker.setDate(Date().addingTimeInterval(-10 * (24*60*60))) // 10天前
+        datepicker.setDate(Date())
     }
 
 }
