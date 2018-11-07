@@ -36,8 +36,8 @@ class CCDateManager {
     /// 最大的日期
     fileprivate let maxDate: Date
     
-    fileprivate(set) var months_available   :[Int]
-    fileprivate(set) var days_available     :[Int]
+    fileprivate var months_available   :[Int]
+    fileprivate var days_available     :[Int]
     
     weak var delegate: CCDateSelectionDelegate?
     
@@ -60,6 +60,7 @@ extension CCDateManager {
         return result
     }
     
+    /// 刷新选择
     func refreshSelection() -> (yRow: Int, mRow: Int, dRow: Int) {
         let yRow = self.delegate?.currentYearRow() ?? 0
         let mRow = self.delegate?.currentMonthRow() ?? 0
@@ -72,39 +73,43 @@ extension CCDateManager {
         let result = refreshCurrent(year: year, month: month, day: day)
         return result
     }
-    
-    fileprivate func refreshCurrent(year: Int, month: Int, day: Int) -> (yRow: Int, mRow: Int, dRow: Int) {
-        handleRefreshMonthsOf(year: year)
-        
-        handleRefreshDaysOf(year: year, month: month)
-        
-        let yRow = year - minDate.year
-        let mRow = months_available.index(of: month) ?? 0
-        let dRow = days_available.index(of: day) ?? 0
-        return (yRow, mRow, dRow)
-    }
-    
-//    /// 处理用户选择变化,返回新的序号
-//    func onSelectionChangedWith(year: Int, month: Int, day: Int) -> (yRow: Int, mRow: Int, dRow: Int) {
-//
-//
-//
-////        if let dayLast = days_available?.last, let dayFirst = days_available?.first {
-////            if day < dayFirst || day > dayLast {
-////                let distanceToLast  = abs(day - dayLast)
-////                let distanceToFirst = abs(day - dayFirst)
-////                return (distanceToLast < distanceToFirst) ? dayLast : dayFirst
-////            }
-////        }
-////        return day
-//    }
-    
-    var minYearInt: Int {
-        return minDate.year
-    }
 }
 
 extension CCDateManager {
+    fileprivate func refreshCurrent(year: Int, month: Int, day: Int) -> (yRow: Int, mRow: Int, dRow: Int) {
+        handleRefreshMonthsOf(year: year)
+        handleRefreshDaysOf(year: year, month: month)
+        
+        var mRow = 0
+        if let mIndex = months_available.index(of: month) {
+            mRow = mIndex
+        } else {
+            if let monthLast = months_available.last, let monthFirst = months_available.first {
+                if month < monthFirst {
+                    mRow = 0
+                } else if month > monthLast {
+                    mRow = months_available.count - 1
+                }
+            }
+        }
+        
+        var dRow = 0
+        if let dIndex = days_available.index(of: day) {
+            dRow = dIndex
+        } else {
+            if let dayLast = days_available.last, let dayFirst = days_available.first {
+                if day < dayFirst {
+                    dRow = 0
+                } else if day > dayLast {
+                    dRow = days_available.count - 1
+                }
+            }
+        }
+        
+        let yRow = year - minDate.year
+        return (yRow, mRow, dRow)
+    }
+    
     /// 处理`月`范围
     fileprivate func handleRefreshMonthsOf(year: Int) {
         
@@ -160,9 +165,12 @@ extension CCDateManager {
 extension CCDateManager {
     fileprivate func numberOfRowsInComponent(_ component: Int) -> Int {
         switch component {
-        case 0: return (maxDate.year - minDate.year) + 1
-        case 1: return months_available.count
-        case 2: return days_available.count
+        case 0:
+            return (maxDate.year - minDate.year) + 1
+        case 1:
+            return months_available.count
+        case 2:
+            return days_available.count
         default: return 0
         }
     }

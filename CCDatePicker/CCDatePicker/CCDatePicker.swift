@@ -90,20 +90,6 @@ extension CCDatePicker{
     }
 }
 
-extension CCDatePicker: CCDateSelectionDelegate {
-    func currentYearRow() -> Int {
-        return pickerview.selectedRow(inComponent: 0)
-    }
-    
-    func currentMonthRow() -> Int {
-        return pickerview.selectedRow(inComponent: 1)
-    }
-    
-    func currentDayRow() -> Int {
-        return pickerview.selectedRow(inComponent: 2)
-    }
-}
-
 //MARK: ------------------------ Private
 
 extension CCDatePicker{
@@ -117,6 +103,20 @@ extension CCDatePicker{
     override func layoutSubviews() {
         super.layoutSubviews()
         pickerview.frame = self.bounds
+    }
+}
+
+extension CCDatePicker: CCDateSelectionDelegate {
+    func currentYearRow() -> Int {
+        return pickerview.selectedRow(inComponent: 0)
+    }
+    
+    func currentMonthRow() -> Int {
+        return pickerview.selectedRow(inComponent: 1)
+    }
+    
+    func currentDayRow() -> Int {
+        return pickerview.selectedRow(inComponent: 2)
     }
 }
 
@@ -190,4 +190,3 @@ extension CCDatePicker: UIPickerViewDataSource{
         return rowCount
     }
 }
-
