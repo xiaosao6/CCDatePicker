@@ -190,3 +190,19 @@ extension CCDatePicker: UIPickerViewDataSource{
         return rowCount
     }
 }
+
+extension UIView {
+    fileprivate func anySubViewScrolling() -> Bool {
+        if let scrollView = self as? UIScrollView {
+            if scrollView.isDragging || scrollView.isDecelerating {
+                return true
+            }
+        }
+        for subv in self.subviews {
+            if subv.anySubViewScrolling(){
+                return true
+            }
+        }
+        return false
+    }
+}
