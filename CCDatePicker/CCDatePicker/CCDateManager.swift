@@ -9,125 +9,172 @@
 import UIKit
 
 
+protocol CCDateSelectionDelegate: class {
+    func currentYearRow() -> Int
+    func currentMonthRow() -> Int
+    func currentDayRow() -> Int
+}
+
+
 /// 日期数据管理类
 class CCDateManager {
     
+    fileprivate lazy var months_: [Int] = {
+        var arr = [Int]()
+        for i in 1...12 { arr.append(i) }
+        return arr
+    }()
+    fileprivate lazy var days_: [Int] = {
+        var arr = [Int]()
+        for i in 1...31 { arr.append(i) }
+        return arr
+    }()
+    
+    
     /// 最小的日期
-    var minDate = Date()
-    
+    fileprivate let minDate: Date
     /// 最大的日期
-    var maxDate = Date()
+    fileprivate let maxDate: Date
     
-    /// 当前选中的日期
-    fileprivate(set) var currentDate = Date()
+    fileprivate(set) var months_available   :[Int]
+    fileprivate(set) var days_available     :[Int]
     
+    weak var delegate: CCDateSelectionDelegate?
+    
+    init(minDate: Date, maxDate: Date) {
+        self.minDate = minDate
+        self.maxDate = maxDate
+        self.months_available = []
+        self.days_available   = []
+    }
 }
 
 extension CCDateManager {
-    
-    func setDate(_ date: Date) {
-        currentDate = date
+    @discardableResult
+    func setDate(_ date: Date) -> (yRow: Int, mRow: Int, dRow: Int) {
+        if date.compare(minDate) == .orderedAscending || date.compare(maxDate) == .orderedDescending {
+            fatalError("指定日期超过了可选日期范围")
+        }
+        
+        let result = refreshCurrent(year: date.year, month: date.month, day: date.day)
+        return result
     }
+    
+    func refreshSelection() -> (yRow: Int, mRow: Int, dRow: Int) {
+        let yRow = self.delegate?.currentYearRow() ?? 0
+        let mRow = self.delegate?.currentMonthRow() ?? 0
+        let dRow = self.delegate?.currentDayRow() ?? 0
+        
+        let year = minDate.year + yRow
+        let month = months_available[mRow]
+        let day = days_available[dRow]
+        
+        let result = refreshCurrent(year: year, month: month, day: day)
+        return result
+    }
+    
+    fileprivate func refreshCurrent(year: Int, month: Int, day: Int) -> (yRow: Int, mRow: Int, dRow: Int) {
+        handleRefreshMonthsOf(year: year)
+        
+        handleRefreshDaysOf(year: year, month: month)
+        
+        let yRow = year - minDate.year
+        let mRow = months_available.index(of: month) ?? 0
+        let dRow = days_available.index(of: day) ?? 0
+        return (yRow, mRow, dRow)
+    }
+    
+//    /// 处理用户选择变化,返回新的序号
+//    func onSelectionChangedWith(year: Int, month: Int, day: Int) -> (yRow: Int, mRow: Int, dRow: Int) {
+//
+//
+//
+////        if let dayLast = days_available?.last, let dayFirst = days_available?.first {
+////            if day < dayFirst || day > dayLast {
+////                let distanceToLast  = abs(day - dayLast)
+////                let distanceToFirst = abs(day - dayFirst)
+////                return (distanceToLast < distanceToFirst) ? dayLast : dayFirst
+////            }
+////        }
+////        return day
+//    }
+    
+    var minYearInt: Int {
+        return minDate.year
+    }
+}
+
+extension CCDateManager {
+    /// 处理`月`范围
+    fileprivate func handleRefreshMonthsOf(year: Int) {
+        
+        if (maxDate.year == minDate.year) {
+            months_available = months_.filter({ $0 >= minDate.month && $0 <= maxDate.month })
+        } else {
+            if year == minDate.year {
+                months_available = months_.filter({ $0 >= minDate.month })
+            } else if year == maxDate.year {
+                months_available = months_.filter({ $0 <= maxDate.month })
+            } else {
+                months_available = months_
+            }
+        }
+    }
+    /// 处理`日`范围
+    fileprivate func handleRefreshDaysOf(year: Int, month: Int) {
+        let fullDays = Date.fullDaysOf(year: year, month: month)
+        
+        if (maxDate.year == minDate.year) {
+            if (maxDate.month == minDate.month){
+                days_available = days_.filter({ $0 >= minDate.day && $0 <= maxDate.day })
+            } else {
+                if (month == minDate.month) {
+                    days_available = days_.filter({ $0 >= minDate.day && $0 <= fullDays })
+                } else if (month == maxDate.month) {
+                    days_available = days_.filter({ $0 <= maxDate.day })
+                } else {
+                    days_available = days_.filter({ $0 <= fullDays })
+                }
+            }
+        } else {
+            if year == minDate.year {
+                if month == minDate.month {
+                    days_available = days_.filter({ $0 >= minDate.day && $0 <= fullDays })
+                } else {
+                    days_available = days_.filter({ $0 <= fullDays })
+                }
+            } else if year == maxDate.year {
+                if month == maxDate.month {
+                    days_available = days_.filter({ $0 <= maxDate.day })
+                } else {
+                    days_available = days_.filter({ $0 <= fullDays })
+                }
+            } else {
+                days_available = days_.filter({ $0 <= fullDays })
+            }
+        }
+    }
+    
 }
 
 extension CCDateManager {
     fileprivate func numberOfRowsInComponent(_ component: Int) -> Int {
         switch component {
-        case 0: // 年
-            return (maxDate.year - minDate.year) + 1
-        case 1: // 月
-            if (maxDate.year == minDate.year) {
-                return (maxDate.month - minDate.month) + 1
-            } else {
-                if currentDate.year == minDate.year {
-                    return 12 - minDate.month + 1
-                } else if currentDate.year == maxDate.year {
-                    return maxDate.month
-                } else {
-                    return 12
-                }
-            }
-        case 2: // 日
-            let fullDays = Date.fullDaysOf(year: currentDate.year, month: currentDate.month)
-            
-            if (maxDate.year == minDate.year) {
-                if (maxDate.month == minDate.month){
-                    return maxDate.day - minDate.day + 1
-                } else {
-                    if (currentDate.month == minDate.month) {
-                        return fullDays - minDate.day + 1
-                    } else if (currentDate.month == maxDate.month) {
-                        return maxDate.day
-                    } else {
-                        return fullDays
-                    }
-                }
-            } else {
-                if currentDate.year == minDate.year {
-                    if currentDate.month == minDate.month {
-                        return fullDays - minDate.day + 1
-                    } else {
-                        return fullDays
-                    }
-                } else if currentDate.year == maxDate.year {
-                    if currentDate.month == maxDate.month {
-                        return maxDate.day
-                    } else {
-                        return fullDays
-                    }
-                } else {
-                    return fullDays
-                }
-            }
+        case 0: return (maxDate.year - minDate.year) + 1
+        case 1: return months_available.count
+        case 2: return days_available.count
         default: return 0
         }
     }
     
     fileprivate func intValueForRow(row: Int, forComponent component: Int) -> Int{
         switch component {
-        case 0: return minDate.year + row
+        case 0:
+            return minDate.year + row
         case 1:
-            if (maxDate.year == minDate.year) {
-                return minDate.month + row
-            } else {
-                if currentDate.year == minDate.year {
-                    return minDate.month + row
-                } else if currentDate.year == maxDate.year {
-                    return row + 1
-                } else {
-                    return row + 1
-                }
-            }
+            return months_available[row]
         case 2:
-            if (maxDate.year == minDate.year) {
-                if (maxDate.month == minDate.month){
-                    return minDate.day + row
-                } else {
-                    if (currentDate.month == minDate.month) {
-                        return minDate.day + row
-                    } else if (currentDate.month == maxDate.month) {
-                        return row + 1
-                    } else {
-                        return row + 1
-                    }
-                }
-            } else {
-                if currentDate.year == minDate.year {
-                    if currentDate.month == minDate.month {
-                        return minDate.day + row
-                    } else {
-                        return row + 1
-                    }
-                } else if currentDate.year == maxDate.year {
-                    if currentDate.month == maxDate.month {
-                        return row + 1
-                    } else {
-                        return row + 1
-                    }
-                } else {
-                    return row + 1
-                }
-            }
+            return days_available[row]
         default: return 1
         }
     }

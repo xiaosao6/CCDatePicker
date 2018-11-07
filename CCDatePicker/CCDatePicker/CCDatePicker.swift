@@ -45,13 +45,8 @@ class CCDatePicker: UIView {
         }
     }
     
-    /// 当前选中的日期
-    var currentDate: Date {
-        return self.manager.currentDate
-    }
     
-    
-    fileprivate let manager = CCDateManager.init()
+    fileprivate var manager: CCDateManager?
     
     fileprivate lazy var pickerview: UIPickerView = {
         let tmpv = UIPickerView.init()
@@ -63,8 +58,8 @@ class CCDatePicker: UIView {
     required init(frame: CGRect = .zero, minDate: Date, maxDate: Date) {
         super.init(frame: frame)
         
-        manager.minDate = minDate
-        manager.maxDate = maxDate
+        manager = CCDateManager.init(minDate: minDate, maxDate: maxDate)
+        manager?.delegate = self
         self.dataSource = manager
         
         pickerview.frame = frame
@@ -85,8 +80,27 @@ extension CCDatePicker{
     }
     
     func setDate(_ date: Date, animated: Bool = false) {
-        manager.setDate(date)
-        pickerview.reloadAllComponents()
+        let rowInfo = manager?.setDate(date)
+        if let info = rowInfo {
+            pickerview.selectRow(info.yRow, inComponent: 0, animated: animated)
+            pickerview.selectRow(info.mRow, inComponent: 1, animated: animated)
+            pickerview.selectRow(info.dRow, inComponent: 2, animated: animated)
+            pickerview.reloadAllComponents()
+        }
+    }
+}
+
+extension CCDatePicker: CCDateSelectionDelegate {
+    func currentYearRow() -> Int {
+        return pickerview.selectedRow(inComponent: 0)
+    }
+    
+    func currentMonthRow() -> Int {
+        return pickerview.selectedRow(inComponent: 1)
+    }
+    
+    func currentDayRow() -> Int {
+        return pickerview.selectedRow(inComponent: 2)
     }
 }
 
@@ -148,12 +162,20 @@ extension CCDatePicker: UIPickerViewDelegate{
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         switch component {
         case 0:
-            pickerView.reloadComponent(1)
-            pickerView.reloadComponent(2)
+            if let info = manager?.refreshSelection() {
+                pickerview.selectRow(info.mRow, inComponent: 1, animated: false)
+                self.pickerView(pickerView, didSelectRow: info.mRow, inComponent: 1)
+            }
         case 1:
-            pickerView.reloadComponent(2)
+            if let info = manager?.refreshSelection() {
+                pickerview.selectRow(info.dRow, inComponent: 2, animated: false)
+                self.pickerView(pickerView, didSelectRow: info.dRow, inComponent: 2)
+            }
+        case 2:
+            pickerView.reloadAllComponents()
         default: break
         }
+        
         self.delegate?.didSelectDate(at: self)
     }
 }
