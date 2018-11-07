@@ -10,9 +10,9 @@ import UIKit
 
 
 protocol CCDateSelectionDelegate: class {
-    func currentYearRow() -> Int
-    func currentMonthRow() -> Int
-    func currentDayRow() -> Int
+    func currentYearInt() -> Int
+    func currentMonthInt() -> Int
+    func currentDayInt() -> Int
 }
 
 
@@ -60,18 +60,41 @@ extension CCDateManager {
         return result
     }
     
-    /// 刷新选择
-    func refreshSelection() -> (yRow: Int, mRow: Int, dRow: Int) {
-        let yRow = self.delegate?.currentYearRow() ?? 0
-        let mRow = self.delegate?.currentMonthRow() ?? 0
-        let dRow = self.delegate?.currentDayRow() ?? 0
+    /// 更新`年`的选择,返回新的`月`index
+    func onYearRrefreshed() -> Int {
+        let year  = self.delegate?.currentYearInt() ?? 1
+        let month = self.delegate?.currentMonthInt() ?? 1
         
-        let year = minDate.year + yRow
-        let month = months_available[mRow]
-        let day = days_available[dRow]
+        handleRefreshMonthsOf(year: year)
         
-        let result = refreshCurrent(year: year, month: month, day: day)
-        return result
+        var mRow = months_available.index(of: month) ?? 0
+        if let monthLast = months_available.last, let monthFirst = months_available.first {
+            if month < monthFirst {
+                mRow = 0
+            } else if month > monthLast {
+                mRow = months_available.count - 1
+            }
+        }
+        return mRow
+    }
+    
+    /// 更新`月`的选择,返回新的`日`index
+    func onMonthRrefreshed() -> Int {
+        let year  = self.delegate?.currentYearInt() ?? 1
+        let month = self.delegate?.currentMonthInt() ?? 1
+        let day   = self.delegate?.currentDayInt() ?? 1
+        
+        handleRefreshDaysOf(year: year, month: month)
+        
+        var dRow = days_available.index(of: day) ?? 0
+        if let dayLast = days_available.last, let dayFirst = days_available.first {
+            if day < dayFirst {
+                dRow = 0
+            } else if day > dayLast {
+                dRow = days_available.count - 1
+            }
+        }
+        return dRow
     }
 }
 

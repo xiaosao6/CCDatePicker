@@ -107,16 +107,25 @@ extension CCDatePicker{
 }
 
 extension CCDatePicker: CCDateSelectionDelegate {
-    func currentYearRow() -> Int {
-        return pickerview.selectedRow(inComponent: 0)
+    func currentYearInt() -> Int {
+        let row = pickerview.selectedRow(inComponent: 0)
+        let attrStr = self.pickerView(pickerview, attributedTitleForRow: row, forComponent: 0)
+        let value: Int = attrStr?.string.cc_getInt() ?? 1
+        return value
     }
     
-    func currentMonthRow() -> Int {
-        return pickerview.selectedRow(inComponent: 1)
+    func currentMonthInt() -> Int {
+        let row = pickerview.selectedRow(inComponent: 1)
+        let attrStr = self.pickerView(pickerview, attributedTitleForRow: row, forComponent: 1)
+        let value: Int = attrStr?.string.cc_getInt() ?? 1
+        return value
     }
     
-    func currentDayRow() -> Int {
-        return pickerview.selectedRow(inComponent: 2)
+    func currentDayInt() -> Int {
+        let row = pickerview.selectedRow(inComponent: 2)
+        let attrStr = self.pickerView(pickerview, attributedTitleForRow: row, forComponent: 2)
+        let value: Int = attrStr?.string.cc_getInt() ?? 1
+        return value
     }
 }
 
@@ -162,14 +171,14 @@ extension CCDatePicker: UIPickerViewDelegate{
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         switch component {
         case 0:
-            if let info = manager?.refreshSelection() {
-                pickerview.selectRow(info.mRow, inComponent: 1, animated: false)
-                self.pickerView(pickerView, didSelectRow: info.mRow, inComponent: 1)
+            if let mRow = manager?.onYearRrefreshed(){
+                pickerview.selectRow(mRow, inComponent: 1, animated: false)
+                self.pickerView(pickerView, didSelectRow: mRow, inComponent: 1)
             }
         case 1:
-            if let info = manager?.refreshSelection() {
-                pickerview.selectRow(info.dRow, inComponent: 2, animated: false)
-                self.pickerView(pickerView, didSelectRow: info.dRow, inComponent: 2)
+            if let dRow = manager?.onMonthRrefreshed() {
+                pickerview.selectRow(dRow, inComponent: 2, animated: false)
+                self.pickerView(pickerView, didSelectRow: dRow, inComponent: 2)
             }
         case 2:
             pickerView.reloadAllComponents()
@@ -204,5 +213,15 @@ extension UIView {
             }
         }
         return false
+    }
+}
+
+extension String {
+    fileprivate func cc_getInt() -> Int {
+        let scanner = Scanner(string: self)
+        scanner.scanUpToCharacters(from: CharacterSet.decimalDigits, into: nil)
+        var number: Int = 0
+        scanner.scanInt(&number)
+        return number
     }
 }
