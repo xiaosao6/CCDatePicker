@@ -120,21 +120,21 @@ extension CCDatePicker: CCDateSelectionDelegate {
     func currentYearInt() -> Int {
         let row = pickerview.selectedRow(inComponent: 0)
         let attrStr = self.pickerView(pickerview, attributedTitleForRow: row, forComponent: 0)
-        let value: Int = attrStr?.string.cc_getInt() ?? 1
+        let value: Int = attrStr?.string.getInt() ?? 1
         return value
     }
     
     func currentMonthInt() -> Int {
         let row = pickerview.selectedRow(inComponent: 1)
         let attrStr = self.pickerView(pickerview, attributedTitleForRow: row, forComponent: 1)
-        let value: Int = attrStr?.string.cc_getInt() ?? 1
+        let value: Int = attrStr?.string.getInt() ?? 1
         return value
     }
     
     func currentDayInt() -> Int {
         let row = pickerview.selectedRow(inComponent: 2)
         let attrStr = self.pickerView(pickerview, attributedTitleForRow: row, forComponent: 2)
-        let value: Int = attrStr?.string.cc_getInt() ?? 1
+        let value: Int = attrStr?.string.getInt() ?? 1
         return value
     }
 }
@@ -198,9 +198,7 @@ extension CCDatePicker: UIPickerViewDelegate{
 }
 
 extension CCDatePicker: UIPickerViewDataSource{
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 3 // 年月日
-    }
+    func numberOfComponents(in pickerView: UIPickerView) -> Int { return 3 }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         let rowCount = self.dataSource?.datepicker(self, numberOfRowsInComponent: component) ?? 0
@@ -209,7 +207,7 @@ extension CCDatePicker: UIPickerViewDataSource{
 }
 
 extension String {
-    fileprivate func cc_getInt() -> Int {
+    fileprivate func getInt() -> Int {
         let scanner = Scanner(string: self)
         scanner.scanUpToCharacters(from: CharacterSet.decimalDigits, into: nil)
         var number: Int = 0
