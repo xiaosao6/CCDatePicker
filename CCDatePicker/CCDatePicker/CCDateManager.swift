@@ -61,7 +61,7 @@ extension CCDateManager {
     }
     
     /// 更新`年`的选择,返回新的`月`index
-    func onYearRrefreshed() -> Int {
+    func onYearRefreshed() -> Int {
         let year  = self.delegate?.currentYearInt() ?? 1
         let month = self.delegate?.currentMonthInt() ?? 1
         
@@ -79,7 +79,7 @@ extension CCDateManager {
     }
     
     /// 更新`月`的选择,返回新的`日`index
-    func onMonthRrefreshed() -> Int {
+    func onMonthRefreshed() -> Int {
         let year  = self.delegate?.currentYearInt() ?? 1
         let month = self.delegate?.currentMonthInt() ?? 1
         let day   = self.delegate?.currentDayInt() ?? 1
@@ -224,7 +224,7 @@ extension CCDateManager: CCDatePickerDataSource {
 
 extension Date {
     static var cc_defaultFormatter: DateFormatter {
-        return self.dateFormatterWith("yyyy-MM-dd")
+        return self.dateFormatterWith("yyyy-M-d")
     }
     
     /// 自定义时间格式的格式化器

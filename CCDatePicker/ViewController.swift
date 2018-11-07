@@ -28,7 +28,7 @@ class ViewController: UIViewController {
 
 extension ViewController: CCDatePickerDelegate {
     func didSelectDate(at picker: CCDatePicker) {
-        let description = picker.description//.currentDate.description(with: Locale.current)
+        let description = picker.currentDate.description(with: Locale.current)
         NSLog(description)
     }
 }

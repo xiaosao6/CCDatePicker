@@ -45,6 +45,15 @@ class CCDatePicker: UIView {
         }
     }
     
+    /// 当前选择的日期
+    var currentDate: Date {
+        let year  = currentYearInt()
+        let month = currentMonthInt()
+        let day   = currentDayInt()
+        let date  = Date.cc_defaultFormatter.date(from: "\(year)-\(month)-\(day)")
+        return date!
+    }
+    
     
     fileprivate var manager: CCDateManager?
     
@@ -73,7 +82,8 @@ class CCDatePicker: UIView {
 //MARK: ------------------------ Public
 
 extension CCDatePicker{
-    /// 设置日期,例如`"2007-08-20"`或`"2007-11-09"`
+    
+    /// 设置日期,例如`"2007-8-20"`或`"2007-11-9"`
     func setDate(_ dateString: String, animated: Bool = false) {
         guard let date = Date.cc_defaultFormatter.date(from: dateString) else { return }
         setDate(date, animated: animated)
@@ -156,7 +166,6 @@ extension CCDatePicker: UIPickerViewDelegate{
     
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
         let attrText = self.pickerView(pickerView, attributedTitleForRow: row, forComponent: component)
-        
         if let label = view as? UILabel {
             label.attributedText = attrText
             return label
@@ -171,21 +180,20 @@ extension CCDatePicker: UIPickerViewDelegate{
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         switch component {
         case 0:
-            if let mRow = manager?.onYearRrefreshed(){
+            if let mRow = manager?.onYearRefreshed(){
                 pickerview.selectRow(mRow, inComponent: 1, animated: false)
                 self.pickerView(pickerView, didSelectRow: mRow, inComponent: 1)
             }
         case 1:
-            if let dRow = manager?.onMonthRrefreshed() {
+            if let dRow = manager?.onMonthRefreshed() {
                 pickerview.selectRow(dRow, inComponent: 2, animated: false)
                 self.pickerView(pickerView, didSelectRow: dRow, inComponent: 2)
             }
         case 2:
             pickerView.reloadAllComponents()
+            self.delegate?.didSelectDate(at: self)
         default: break
         }
-        
-        self.delegate?.didSelectDate(at: self)
     }
 }
 
@@ -197,22 +205,6 @@ extension CCDatePicker: UIPickerViewDataSource{
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         let rowCount = self.dataSource?.datepicker(self, numberOfRowsInComponent: component) ?? 0
         return rowCount
-    }
-}
-
-extension UIView {
-    fileprivate func anySubViewScrolling() -> Bool {
-        if let scrollView = self as? UIScrollView {
-            if scrollView.isDragging || scrollView.isDecelerating {
-                return true
-            }
-        }
-        for subv in self.subviews {
-            if subv.anySubViewScrolling(){
-                return true
-            }
-        }
-        return false
     }
 }
 
