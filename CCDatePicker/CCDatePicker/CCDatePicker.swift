@@ -181,11 +181,13 @@ extension CCDatePicker: UIPickerViewDelegate{
         switch component {
         case 0:
             if let mRow = manager?.onYearRefreshed(){
+                pickerView.reloadComponent(1)
                 pickerview.selectRow(mRow, inComponent: 1, animated: false)
                 self.pickerView(pickerView, didSelectRow: mRow, inComponent: 1)
             }
         case 1:
             if let dRow = manager?.onMonthRefreshed() {
+                pickerView.reloadComponent(2)
                 pickerview.selectRow(dRow, inComponent: 2, animated: false)
                 self.pickerView(pickerView, didSelectRow: dRow, inComponent: 2)
             }
