@@ -8,17 +8,20 @@
 -------------
 
 ### 效果:
-![image](https://github.com/xiaosao6/CCDatePicker/blob/master/SnapShot.png?raw=true)
+![image](https://github.com/xiaosao6/CCDatePicker/blob/master/SnapShot.png?raw=true = 100 ×80)
 
 
 
 ### 示例:  
 ```Swift
-let datepicker = CCDatePicker.init(frame: frame)
+let minDate = Date().addingTimeInterval((365 * 24 * 60 * 60) * -10)
+let maxDate = Date().addingTimeInterval((  1 * 24 * 60 * 60))
+let datepicker = CCDatePicker.init(minDate: minDate, maxDate: maxDate)
+datepicker.frame = frame
 datepicker.delegate = self
 self.view.addSubview(datepicker)
-   
 datepicker.setDate(Date())
+
 ```
 
 Delegate：
@@ -26,14 +29,15 @@ Delegate：
 ```Swift
 extension ViewController: CCDatePickerDelegate {
     func didSelectDate(at picker: CCDatePicker) {
-    	
+        let description = picker.currentDate.description(with: Locale.current)
+        NSLog(description)
     }
 }
 ```
 
 ### 特性
 - 内部使用`UIPickerView`实现
-- 可配置项: 文字字体、文字颜色、行高、分割线颜色、日期上下限，可设定/获取当前日期。
+- 可配置项: 单位字符、文字字体、文字颜色、行高、分割线颜色、日期上下限，可设定/获取当前日期。
 
 
 ### 使用方法
