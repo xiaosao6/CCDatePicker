@@ -8,7 +8,7 @@
 -------------
 
 ### 效果:
-![image](https://github.com/xiaosao6/CCDatePicker/blob/master/SnapShot.png?raw=true = 100 ×80)
+<img src="https://raw.githubusercontent.com/xiaosao6/CCDatePicker/master/SnapShot.png" width = "300" height = "240" />
 
 
 
