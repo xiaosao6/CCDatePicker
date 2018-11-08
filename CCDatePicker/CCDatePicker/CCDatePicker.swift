@@ -33,15 +33,14 @@ class CCDatePicker: UIView {
     /// 标题颜色
     var titleColor = UIColor.darkGray
     
-    /// 行高
-    var rowHeight: CGFloat = 44
+    /// 中心行高
+    var rowHeight: CGFloat = 45
     
     /// 分割线颜色
     var separatorColor = UIColor.lightGray {
         didSet{
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { // 立即刷新
-                self.separatorLines.forEach { $0.backgroundColor = self.separatorColor }
-            }
+            setNeedsLayout()
+            layoutIfNeeded()
         }
     }
     
@@ -54,6 +53,8 @@ class CCDatePicker: UIView {
         return date!
     }
     
+    
+    fileprivate let componentCount = 3
     
     fileprivate var manager: CCDateManager?
     
@@ -113,6 +114,7 @@ extension CCDatePicker{
     override func layoutSubviews() {
         super.layoutSubviews()
         pickerview.frame = self.bounds
+        separatorLines.forEach { $0.backgroundColor = separatorColor }
     }
 }
 
@@ -144,7 +146,8 @@ extension CCDatePicker: UIPickerViewDelegate{
         switch component {
         case 0: return pickerView.bounds.width * 0.45 // 根据字符宽度测得比例
         case 1: return pickerView.bounds.width * 0.5 * (1 - 0.45)
-        default:return pickerView.bounds.width * 0.5 * (1 - 0.45)
+        case 2: return pickerView.bounds.width * 0.5 * (1 - 0.45)
+        default: return 0
         }
     }
     func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
@@ -192,7 +195,6 @@ extension CCDatePicker: UIPickerViewDelegate{
                 self.pickerView(pickerView, didSelectRow: dRow, inComponent: 2)
             }
         case 2:
-            pickerView.reloadAllComponents()
             self.delegate?.didSelectDate(at: self)
         default: break
         }
@@ -200,7 +202,7 @@ extension CCDatePicker: UIPickerViewDelegate{
 }
 
 extension CCDatePicker: UIPickerViewDataSource{
-    func numberOfComponents(in pickerView: UIPickerView) -> Int { return 3 }
+    func numberOfComponents(in pickerView: UIPickerView) -> Int { return componentCount }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         let rowCount = self.dataSource?.datepicker(self, numberOfRowsInComponent: component) ?? 0
