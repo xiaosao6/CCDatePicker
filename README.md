@@ -16,7 +16,7 @@
 ```Swift
 let minDate = Date().addingTimeInterval((365 * 24 * 60 * 60) * -10)
 let maxDate = Date().addingTimeInterval((  1 * 24 * 60 * 60))
-let datepicker = CCDatePicker.init(minDate: minDate, maxDate: maxDate)
+let datepicker = CCDatePicker.init(minDate: minDate, maxDate: maxDate)!
 datepicker.frame = frame
 datepicker.delegate = self
 self.view.addSubview(datepicker)
