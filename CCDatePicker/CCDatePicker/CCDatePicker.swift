@@ -65,8 +65,12 @@ class CCDatePicker: UIView {
         return tmpv
     }()
     
-    required init(frame: CGRect = .zero, minDate: Date, maxDate: Date) {
+    required init?(frame: CGRect = .zero, minDate: Date, maxDate: Date) {
         super.init(frame: frame)
+        
+        if minDate.compare(maxDate) == .orderedDescending {
+            return nil
+        }
         
         manager = CCDateManager.init(minDate: minDate, maxDate: maxDate)
         manager?.delegate = self
@@ -265,9 +269,10 @@ class CCDateManager {
 
 extension CCDateManager {
     @discardableResult
-    func setDate(_ date: Date) -> (yRow: Int, mRow: Int, dRow: Int) {
+    func setDate(_ date: Date) -> (yRow: Int, mRow: Int, dRow: Int)? {
         if date.compare(minDate) == .orderedAscending || date.compare(maxDate) == .orderedDescending {
-            fatalError("指定日期超过了可选日期范围")
+            NSLog("指定日期超过了可选范围")
+            return nil
         }
         
         let result = refreshCurrent(year: date.year, month: date.month, day: date.day)
